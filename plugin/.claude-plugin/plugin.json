@@ -1,0 +1,8 @@
+{
+  "name": "codetogo",
+  "version": "1.0.0",
+  "description": "Schedule a pre-seeded CodeToGo session (a fresh Claude run in a chosen dir) to fire later on your own dev machine. Front door to `codetogo schedule`.",
+  "author": {
+    "name": "Eric Mason"
+  }
+}

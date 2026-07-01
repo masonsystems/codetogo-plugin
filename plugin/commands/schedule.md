@@ -1,0 +1,85 @@
+---
+description: Schedule a pre-seeded CodeToGo session to fire later in this directory
+argument-hint: <what to do> <when> | list | remove <name>
+allowed-tools: Bash
+---
+
+You are the front door to `codetogo schedule`. A scheduled run launches a **fresh**
+`claude "<prompt>"` session on this machine, in a chosen directory, at a cron or
+one-shot time — it inherits the real files/tools/creds of that dir but has **no
+memory of this conversation**, so the prompt you write must be fully self-contained.
+
+`$ARGUMENTS` is the user's request. Handle three shapes:
+
+## 1. List
+
+If `$ARGUMENTS` is "list" (or empty and the user clearly wants to see schedules):
+
+```bash
+codetogo schedule list
+```
+
+Show the output and stop.
+
+## 2. Remove
+
+If `$ARGUMENTS` starts with "remove" / "delete" / "cancel" followed by a name:
+
+```bash
+codetogo schedule remove <name>
+```
+
+## 3. Add (the default)
+
+Otherwise the user is describing **what** to do and **when**. Do this:
+
+1. **Capture the working directory** the schedule should run in. Default to the
+   current dir:
+   ```bash
+   pwd
+   ```
+   Use that as `--cwd` unless the user named a different directory.
+
+2. **Derive a short kebab-case name** from the task (e.g. "nightly review" →
+   `nightly-review`). Keep it unique and stable.
+
+3. **Parse the "when"** into either:
+   - a 5-field cron expression for recurring runs (e.g. "every day at 9am" →
+     `0 9 * * *`, "weekdays at 8" → `0 8 * * 1-5`), or
+   - an ISO date/time for a one-shot (e.g. "tomorrow at 3pm" →
+     `2026-06-17T15:00`). Compute the absolute date from today if needed.
+
+4. **Write a self-contained prompt to a temp file.** The scheduled Claude has no
+   memory of this chat, so spell out the full task, the repo/dir context, and what
+   "done" looks like. NEVER inline the prompt through shell quoting — write it to a
+   file and pass `--prompt-file`:
+   ```bash
+   cat > /tmp/ctg-schedule-prompt.txt <<'PROMPT'
+   <the full, self-contained prompt>
+   PROMPT
+   ```
+
+5. **Preview with `--dry-run`** (validates the cwd is a trusted Claude dir, parses
+   the trigger, prints the computed next-fire time — saves nothing):
+   ```bash
+   codetogo schedule add --dry-run \
+     --name <name> --cwd "<dir>" --at "<cron|ISO>" \
+     --prompt-file /tmp/ctg-schedule-prompt.txt
+   ```
+
+6. **Show the user the parse** (name, next run, cwd, prompt) and **ask them to
+   confirm**. If they confirm, run the real command (same flags, no `--dry-run`):
+   ```bash
+   codetogo schedule add \
+     --name <name> --cwd "<dir>" --at "<cron|ISO>" \
+     --prompt-file /tmp/ctg-schedule-prompt.txt
+   ```
+
+### Notes
+
+- If `--dry-run` reports the dir isn't a trusted Claude project, tell the user to
+  open Claude there once and accept the trust dialog — a scheduled run in an
+  untrusted dir hangs at the trust prompt and never delivers the prompt.
+- The server must be running (`codetogo start`) for the schedule to fire.
+- Add `--tz <IANA>` (e.g. `America/Chicago`) only if the user wants a zone other
+  than this machine's.

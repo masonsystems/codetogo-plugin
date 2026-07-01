@@ -1,0 +1,17 @@
+{
+  "name": "codetogo-marketplace",
+  "owner": {
+    "name": "Eric Mason"
+  },
+  "metadata": {
+    "description": "CodeToGo plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "codetogo",
+      "source": "./plugin",
+      "description": "Schedule a pre-seeded CodeToGo session to fire later on your dev machine via /codetogo:schedule",
+      "version": "1.0.0"
+    }
+  ]
+}
