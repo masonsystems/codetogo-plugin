@@ -24,7 +24,7 @@ Handoffs are **not** auto-loaded — a new session picks one up only when you ru
 ## 2. Delete a default handoff immediately — before any work
 
 The instant you've read a **default** handoff (the `.claude/tmp/HANDOFF.md` loaded by
-default), delete it — right now, before `git status`, before summarizing, before touching
+default), delete it — right now, before summarizing, before touching
 code. It's a one-shot baton: its content is already in your context, and a lingering file is
 the #1 cause of "which handoff is actually resuming?" confusion.
 
@@ -35,17 +35,13 @@ ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-t
 Exception: if `$ARGUMENTS` gave an explicit path, leave that file in place — the user (or a
 compact swap that may need to re-fire) pointed at it deliberately.
 
-## 3. Check for drift, then get to work
+## 3. Get to work
 
-Run `git status` and `git log --oneline -3`. If the branch or recent commits diverge from
-what the handoff describes, surface it before building on the changed base:
-
-> The repo has changed since this handoff was created: <describe>. Proceed with the handoff
-> context anyway, or do you want to tell me what changed?
-
-Otherwise give a one-line summary and **start on the outstanding work immediately** — **Not
-Yet Done** / **Resume Instructions** are standing orders the user already gave. Don't end on
-"Ready to continue?" and wait.
+A compact swap re-execs a fresh process under the *same* PTY and checkout with ~zero elapsed
+time, so there's nothing to reconcile against the repo — go straight to the work. Give a
+one-line summary and **start on the outstanding work immediately** — **Not Yet Done** /
+**Resume Instructions** are standing orders the user already gave. Don't end on "Ready to
+continue?" and wait.
 
 ```
 Resuming from handoff: <title>
@@ -53,7 +49,7 @@ Goal: <1 sentence> · Status: <X of Y done>
 Picking this up now — starting with <first item>.
 ```
 
-Pause for the user only when: state drifted (step 3 flagged a conflict), a blocker needs a
+Pause for the user only when: a blocker needs a
 decision/credentials/access only they can give, the outstanding work is genuinely ambiguous
 **and** the source transcript doesn't resolve it (`aii show cc/<id>`), or there's no
 actionable work left (pure context) — then say it's loaded and ask what they want.
