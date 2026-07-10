@@ -21,19 +21,27 @@ Resolve in priority order:
 Handoffs are **not** auto-loaded — a new session picks one up only when you run
 `/codetogo:resume` (optionally with a path). Read the whole document.
 
-## 2. Delete a default handoff immediately — before any work
+## 2. Delete the handoff if it's the one-shot baton — before any work
 
-The instant you've read a **default** handoff (the `.claude/tmp/HANDOFF.md` loaded by
-default), delete it — right now, before summarizing, before touching
-code. It's a one-shot baton: its content is already in your context, and a lingering file is
-the #1 cause of "which handoff is actually resuming?" confusion.
+A handoff at `.claude/tmp/HANDOFF.md` is a **one-shot baton**: `/codetogo:handoff` writes there,
+and a `/codetogo:compact` swap re-seeds this session by pointing `/codetogo:resume` at that exact
+path. So the instant you've read it, delete it — right now, before summarizing, before touching
+code — **whether you loaded it by default (no arg) or via an explicit `$ARGUMENTS` path**. Its
+content is already in your context; a lingering `.claude/tmp/HANDOFF.md` is the #1 cause of
+"which handoff is actually resuming?" confusion and gets silently re-loaded (and deleted) by the
+next no-arg resume. Deleting it is safe: the compact swap fires exactly once, so there is no
+re-fire that still needs the file.
+
+The discriminator is the file's location, **not** how the path was passed. Delete the exact file
+you loaded only when its path is that ephemeral baton (ends in `.claude/tmp/HANDOFF.md`):
 
 ```bash
-ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; rm -f "$ROOT/.claude/tmp/HANDOFF.md"
+HP="$ARGUMENTS"; if [ -z "$HP" ]; then ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; HP="$ROOT/.claude/tmp/HANDOFF.md"; fi; case "$HP" in */.claude/tmp/HANDOFF.md) rm -f "$HP" && echo "deleted one-shot handoff: $HP" ;; *) echo "kept persistent doc (not a .claude/tmp baton): $HP" ;; esac
 ```
 
-Exception: if `$ARGUMENTS` gave an explicit path, leave that file in place — the user (or a
-compact swap that may need to re-fire) pointed at it deliberately.
+Exception: an explicit `$ARGUMENTS` path that points **elsewhere** — anything not ending in
+`.claude/tmp/HANDOFF.md` (a doc at the repo root, under `docs/`, a saved plan) — is a persistent
+doc the user pointed at deliberately; the `case` above leaves it untouched.
 
 ## 3. Get to work
 

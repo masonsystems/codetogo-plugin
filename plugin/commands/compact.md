@@ -57,9 +57,10 @@ use that path instead.
 
 ## 3. Arm the compact, then end the turn
 
-Arm the in-place swap for THIS session, pointing at the handoff's **absolute** path (use the
-explicit-path form — the no-arg resume deletes the handoff on read, which would leave nothing
-if the swap needs to re-fire):
+Arm the in-place swap for THIS session, pointing at the handoff's **absolute** path — the
+explicit path guarantees the fresh `claude` loads *this* handoff regardless of the dir it
+respawns in (a no-arg resume resolves the default path from cwd, which lands in the wrong tree
+for a worktree session — COD-811). The resumed session deletes the baton after reading it:
 
 ```bash
 codetogo compact "<absolute-handoff-path>"
