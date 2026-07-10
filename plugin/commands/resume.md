@@ -36,7 +36,7 @@ The discriminator is the file's location, **not** how the path was passed. Delet
 you loaded only when its path is that ephemeral baton (ends in `.claude/tmp/HANDOFF.md`):
 
 ```bash
-HP="$ARGUMENTS"; if [ -z "$HP" ]; then ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; HP="$ROOT/.claude/tmp/HANDOFF.md"; fi; case "$HP" in */.claude/tmp/HANDOFF.md) rm -f "$HP" && echo "deleted one-shot handoff: $HP" ;; *) echo "kept persistent doc (not a .claude/tmp baton): $HP" ;; esac
+HP="$ARGUMENTS"; if [ -z "$HP" ]; then ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; HP="$ROOT/.claude/tmp/HANDOFF.md"; fi; case "$HP" in .claude/tmp/HANDOFF.md|*/.claude/tmp/HANDOFF.md) rm -f "$HP" && echo "deleted one-shot handoff: $HP" ;; *) echo "kept persistent doc (not a .claude/tmp baton): $HP" ;; esac
 ```
 
 Exception: an explicit `$ARGUMENTS` path that points **elsewhere** — anything not ending in
