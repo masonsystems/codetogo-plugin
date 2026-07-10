@@ -16,10 +16,23 @@ Stop hook: this turn writes the handoff and arms the compact; the moment you fin
 `claude` is killed and `claude /codetogo:resume <path>` takes its place under the same PTY.
 The client sees no reconnect, only new output.
 
-## 0. Precondition — must be a CodeToGo-owned session
+## HARD RULE — this command is a stop order
+
+The whole point of this command is to stop spending tokens in this process **immediately**.
+From the moment it's invoked, your only remaining job is: write the handoff, arm the compact,
+end the turn. That is exactly **three tool calls** — the Bash call in step 1, the Write of the
+handoff in step 2, the Bash call in step 3 — and **nothing else**.
+
+Do **not** use any other tool or do any other work: don't finish the in-flight task, don't
+run tests, don't gather state (`git status`, `git diff`, log searches, file reads), don't
+tidy up, don't investigate. Anything you were doing — or wanted to do — becomes a **Not Yet
+Done** item in the handoff for the next agent; the fresh process does it, not you. Every
+extra tool call here adds a turn and spends the very tokens this command exists to save.
+
+## 1. Precondition + handoff path — ONE Bash call
 
 ```bash
-[ -n "$CODETOGO_SESSION" ] && echo "owned: $CODETOGO_SESSION" || echo "NOT a codetogo-owned session"
+if [ -z "$CODETOGO_SESSION" ]; then echo "NOT a codetogo-owned session"; else ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "owned: $CODETOGO_SESSION"; echo "transcript: cc/$CLAUDE_CODE_SESSION_ID"; echo "handoff: $ROOT/.claude/tmp/HANDOFF.md"; fi
 ```
 
 This only works when CodeToGo spawned the PTY — a `codetogo claude` session, the web "new
@@ -27,22 +40,22 @@ session" button, or a scheduled session. A bare `claude` that CodeToGo only sees
 is **not** swappable. If it prints `NOT a codetogo-owned session`, stop and tell the user
 this command only works inside a CodeToGo-managed session — there's nothing to reset.
 
-## 1. Write the handoff
+## 2. Write the handoff — from context only
 
-Do exactly what `/codetogo:handoff` does — gather state (`git status`, `git diff --stat`,
-`git log --oneline -5`, `echo "cc/$CLAUDE_CODE_SESSION_ID"`), mine the conversation, and
-write a complete `# Handoff: …` document. Save it under the project root and capture the
-absolute path:
+Write a complete `# Handoff: <title>` document (the format `/codetogo:handoff` defines) to
+the `handoff:` path from step 1, built **entirely from what's already in your context**. Run
+nothing to gather state — the next agent can run `git status` itself for one cheap call; you
+re-deriving it now defeats the purpose. If you don't know something (exact diff state,
+whether tests pass), *say so in the handoff* rather than checking. Include the `transcript:`
+id from step 1 so the next agent can consult the source conversation.
 
-```bash
-ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "$ROOT/.claude/tmp/HANDOFF.md"
-```
+Everything unfinished — including whatever this command interrupted — goes under **Not Yet
+Done** / **Resume Instructions** as standing orders for the next agent.
 
-Write to the absolute path that prints; the first line must be `# Handoff: <title>`. If
-`$ARGUMENTS` is a path, the user already wrote/reviewed the handoff — skip writing and use
-that path instead.
+If `$ARGUMENTS` is a path, the user already wrote/reviewed the handoff — skip this step and
+use that path instead.
 
-## 2. Arm the compact
+## 3. Arm the compact, then end the turn
 
 Arm the in-place swap for THIS session, pointing at the handoff's **absolute** path (use the
 explicit-path form — the no-arg resume deletes the handoff on read, which would leave nothing
@@ -52,7 +65,8 @@ if the swap needs to re-fire):
 codetogo compact "<absolute-handoff-path>"
 ```
 
-Expect `Session compact armed.` Then **end your turn** — the swap fires on the next Stop
-hook, so an in-flight turn is never killed. If it instead prints `Not in a CodeToGo session`
-or `Failed to arm session compact: …`, the step-0 precondition wasn't actually met (or the
-server isn't running) — report exactly what it said and stop.
+Expect `Session compact armed.` Then **end your turn immediately** — one line to the user
+("Handoff written, compact armed — resetting now."), no work summary, no follow-ups. The
+swap fires on the next Stop hook, so an in-flight turn is never killed. If it instead prints
+`Not in a CodeToGo session` or `Failed to arm session compact: …`, the step-1 precondition
+wasn't actually met (or the server isn't running) — report exactly what it said and stop.

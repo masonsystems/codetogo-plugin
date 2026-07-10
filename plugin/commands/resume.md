@@ -1,5 +1,5 @@
 ---
-description: Resume work from a handoff written by /codetogo:handoff (also what a /codetogo:compact swap re-seeds into)
+description: Resume work from a handoff written by /codetogo:handoff (also what an in-place context reset re-seeds into)
 argument-hint: "[path]"
 ---
 
