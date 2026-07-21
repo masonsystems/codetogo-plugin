@@ -10,8 +10,8 @@
     {
       "name": "codetogo",
       "source": "./plugin",
-      "description": "CodeToGo companion commands: /codetogo:schedule (fire a pre-seeded session later), plus /codetogo:handoff, /codetogo:resume, and /codetogo:compact (in-place context reset for a live session)",
-      "version": "1.1.3"
+      "description": "CodeToGo companion commands: /codetogo:spawn (start titled sessions now, one per task), /codetogo:schedule (fire a pre-seeded session later), plus /codetogo:handoff, /codetogo:resume, and /codetogo:compact (in-place context reset for a live session)",
+      "version": "1.2.0"
     }
   ]
 }

@@ -3,6 +3,8 @@
 Companion slash commands for [CodeToGo](https://codetogo.app), the natural-language front
 door to the `codetogo` CLI:
 
+- **`/codetogo:spawn`** — start fresh, titled sessions *now*, one per task, in any project
+  directory — driveable from your phone the moment they start.
 - **`/codetogo:schedule`** — schedule a fresh, pre-seeded Claude Code session to fire later
   on your own dev machine.
 - **`/codetogo:handoff`** · **`/codetogo:resume`** — write a handoff another agent (or a
@@ -29,6 +31,22 @@ In Claude Code:
 /plugin marketplace add masonsystems/codetogo-plugin
 /plugin install codetogo@codetogo-marketplace
 ```
+
+## Spawn
+
+```
+/codetogo:spawn fix the flaky auth test
+/codetogo:spawn triage the support inbox in ~/src/support-bot, and bump deps in ~/src/site
+```
+
+One fresh `claude "<prompt>"` session per task — titled for the task, detached, and live in
+your CodeToGo session list immediately, so you can watch, approve, and steer each one from
+your phone (assuming `codetogo` is connected to the cloud — the CLI warns at spawn time if
+it isn't). Reach for it (instead of in-session team agents/subagents) when you'll drive
+the new sessions yourself, or the tasks aren't part of the current session's work — e.g.
+one planning session fanning work out across several projects. Same ground rules as
+schedule: each prompt is written self-contained (the new session has no memory of the chat
+that spawned it), and each directory should be a trusted Claude project.
 
 ## Schedule
 
