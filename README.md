@@ -39,8 +39,8 @@ In Claude Code:
 /codetogo:spawn triage the support inbox in ~/src/support-bot, and bump deps in ~/src/site
 ```
 
-One fresh `claude "<prompt>"` session per task — titled for the task, detached, and live in
-your CodeToGo session list immediately, so you can watch, approve, and steer each one from
+One fresh `claude "<prompt>"` session per task — titled for the task, started in that
+task's own project directory, detached, and live in your CodeToGo session list immediately, so you can watch, approve, and steer each one from
 your phone (assuming `codetogo` is connected to the cloud — the CLI warns at spawn time if
 it isn't). Reach for it (instead of in-session team agents/subagents) when you'll drive
 the new sessions yourself, or the tasks aren't part of the current session's work — e.g.

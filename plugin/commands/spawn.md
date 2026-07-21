@@ -1,11 +1,12 @@
 ---
-description: Start new CodeToGo sessions now — one fresh, titled claude session per task, in any directory on this machine, ready to drive from the user's phone or web. Prefer this over team agents/subagents when the user will interact with the new sessions themselves, or the tasks aren't part of this session's work (other projects, independent chores).
+description: Start new CodeToGo sessions now — one fresh, titled claude session per task, each started in the project directory where that task's files and work live, ready to drive from the user's phone or web. Prefer this over team agents/subagents when the user will interact with the new sessions themselves, or the tasks aren't part of this session's work (other projects, independent chores).
 argument-hint: <task> [in <dir>] [and <task> in <dir> ...]
 allowed-tools: Bash
 ---
 
 You are the front door to `codetogo spawn`. Each spawn launches a **fresh, detached**
-`claude "<prompt>"` session on this machine, in a chosen directory, titled for its task.
+`claude "<prompt>"` session on this machine, in that task's own directory, titled for
+its task.
 It appears immediately in the user's CodeToGo session list (phone /
 https://codetogo.app), where they can watch it, answer permission prompts, and steer it.
 It has **no memory of this conversation**, so each prompt must be fully self-contained.
@@ -24,8 +25,13 @@ It has **no memory of this conversation**, so each prompt must be fully self-con
 
 `$ARGUMENTS` describes one task or several. Start **one session per task**:
 
-1. **Directory.** Default to the current dir (`pwd`); use the directory the user named
-   for that task if any (resolve project names to absolute paths).
+1. **Directory — start each session where its work lives.** The new session's whole
+   world is the directory it starts in: it determines which files, tools, CLAUDE.md,
+   and credentials the fresh claude sees. So pick the project/repo whose files the
+   task actually touches — NOT, by default, wherever this conversation happens to be
+   running. Resolve a named project to its absolute path; use the current dir only
+   when the task is genuinely about this project. If you can't tell where a task's
+   work lives, ask the user rather than guessing.
 
 2. **Title.** Derive a short human title from the task (3–6 words, e.g. "Fix flaky
    auth test"). The session list shows `<dir-basename>: <title>`, so don't repeat the
