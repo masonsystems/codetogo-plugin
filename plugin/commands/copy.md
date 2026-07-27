@@ -83,6 +83,10 @@ again.
   temp file and push that with `codetogo copy --file <plain.txt>` — never `--file` the HTML
   file itself, which would paste raw markup. Tell the user it went as plain text and that
   `codetogo upgrade` enables the formatted version.
+- **Older running server:** the CLI can be new while the *daemon* it talks to predates the
+  feature. The success line reports what actually shipped, so if you passed `--html` and it
+  says `N line(s) of text` rather than `of rich text`, the running server dropped the rich
+  flavor — tell the user to run `codetogo restart` and try again.
 - 128 KB limit across both flavors. For anything larger, point the user at the file instead
   of pasting it.
 - Plain text is fine too: `codetogo copy "some text"` or `codetogo copy --file <path>` skips
