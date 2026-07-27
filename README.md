@@ -12,6 +12,8 @@ door to the `codetogo` CLI:
 - **`/codetogo:compact`** — reset a *live* CodeToGo session's context in place: like
   `/compact`, but a real process reset — hot-swap the `claude` process, reseeded from a fresh
   handoff, without a reconnect.
+- **`/codetogo:copy`** — put formatted content on the clipboard of the phone or browser
+  viewing the session, so a paste into Gmail/Docs/Slack keeps bold, bullets, and monospace.
 
 ## Prerequisites
 
@@ -84,3 +86,22 @@ process swap**. At the next idle boundary the old `claude` is killed and
 viewers, phone entry, terminal pane, and scrollback. It's `/compact`, but the reset is a real
 new process (a true near-zero context reset) and the client sees no reconnect, only new
 output. Reach for it when the context is *polluted*, not merely long.
+
+## Copy
+
+```
+/codetogo:copy                                   # copy what we just wrote
+/codetogo:copy the release notes, as an email
+```
+
+The agent runs on your dev machine, but the clipboard it writes is the one on the device
+**viewing the session**. It renders the content as email-ready HTML (Gmail's Arial 14px,
+real bullets, monospace for commands), sends it down the session's own encrypted pipe, and a
+chip appears over your terminal. One tap on **Copy** puts it on your clipboard — both a rich
+and a plain flavor, so a paste into Gmail, Docs, or Slack keeps the formatting while a paste
+into a plain editor still reads.
+
+The tap is required: browsers only allow a clipboard write inside a real user gesture. The
+chip waits until you take it, so this works fine when your phone is in your pocket. Nothing
+viewing the session means nowhere for the chip to land — open it on your phone or in a
+browser first.
