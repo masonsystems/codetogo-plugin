@@ -13,7 +13,8 @@ door to the `codetogo` CLI:
   `/compact`, but a real process reset — hot-swap the `claude` process, reseeded from a fresh
   handoff, without a reconnect.
 - **`/codetogo:copy`** — put formatted content on the clipboard of the phone or browser
-  viewing the session, so a paste into Gmail/Docs/Slack keeps bold, bullets, and monospace.
+  viewing the session, so a paste into Gmail/Docs/Slack keeps bold, bullets, tables, and
+  monospace.
 
 ## Prerequisites
 
@@ -95,11 +96,15 @@ output. Reach for it when the context is *polluted*, not merely long.
 ```
 
 The agent runs on your dev machine, but the clipboard it writes is the one on the device
-**viewing the session**. It renders the content as email-ready HTML (Gmail's Arial 14px,
-real bullets, monospace for commands), sends it down the session's own encrypted pipe, and a
-chip appears over your terminal. One tap on **Copy** puts it on your clipboard — both a rich
-and a plain flavor, so a paste into Gmail, Docs, or Slack keeps the formatting while a paste
-into a plain editor still reads.
+**viewing the session**. The agent writes plain markdown; the CLI converts it to email-ready
+HTML (Gmail's Arial 14px, real bullets and tables, monospace for commands), sends it down the
+session's own encrypted pipe, and a chip appears over your terminal. One tap on **Copy** puts
+it on your clipboard — both a rich and a plain flavor, so a paste into Gmail, Docs, or Slack
+keeps the formatting while a paste into a plain editor still reads.
+
+Headings, bold/italic, inline and fenced code, nested bullet and numbered lists, pipe tables
+with column alignment, links, and horizontal rules all carry over. Converting in the CLI
+rather than the agent is what makes this one turn instead of two.
 
 The tap is required: browsers only allow a clipboard write inside a real user gesture. The
 chip waits until you take it, so this works fine when your phone is in your pocket. Nothing
