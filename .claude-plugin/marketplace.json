@@ -10,8 +10,8 @@
     {
       "name": "codetogo",
       "source": "./plugin",
-      "description": "CodeToGo companion commands: /codetogo:spawn (start titled sessions now, one per task), /codetogo:schedule (fire a pre-seeded session later), plus /codetogo:handoff, /codetogo:resume, and /codetogo:compact (in-place context reset for a live session)",
-      "version": "1.2.1"
+      "description": "CodeToGo companion commands + skills: the codetogo:cli skill (find/read sessions, map PTY \u2194 agent ids, triage what's waiting), /codetogo:spawn (start titled sessions now, one per task), /codetogo:schedule (fire a pre-seeded session later), plus /codetogo:handoff, /codetogo:resume, /codetogo:copy, and /codetogo:compact (in-place context reset for a live session)",
+      "version": "1.4.0"
     }
   ]
 }

@@ -3,6 +3,10 @@
 Companion slash commands for [CodeToGo](https://codetogo.app), the natural-language front
 door to the `codetogo` CLI:
 
+- **`codetogo:cli` skill** (no slash command — loads itself when relevant) — teaches an
+  agent to work the `codetogo` CLI: list what's running on this machine, map a transcript
+  id back to the session that wrote it, read what a session said without attaching, and
+  see what's waiting on you.
 - **`/codetogo:spawn`** — start fresh, titled sessions *now*, one per task, in any project
   directory — driveable from your phone the moment they start.
 - **`/codetogo:schedule`** — schedule a fresh, pre-seeded Claude Code session to fire later
@@ -34,6 +38,26 @@ In Claude Code:
 /plugin marketplace add masonsystems/codetogo-plugin
 /plugin install codetogo@codetogo-marketplace
 ```
+
+## Working the CLI (`codetogo:cli` skill)
+
+A skill, not a command — it loads on its own whenever a task involves a session on this
+machine, a session id, "which agent wrote this", or a `codetogo` command. It exists to
+stop agents burning turns on questions the CLI answers in one call:
+
+```bash
+codetogo sessions --json     # every live session: state, title, cwd, and BOTH ids
+```
+
+The load-bearing thing it teaches is that each session has **two** unrelated uuids — the
+PTY/CodeToGo `id` and the `agentSessionId` naming the Claude/Codex transcript on disk —
+that are not interchangeable, and that neither command falls back to the other. With the
+mapping in hand, "which session produced this commit?" is a `jq` one-liner over
+`agentSessionId` instead of a grep across `~/.claude/projects`. It also covers reading a
+session's last messages without attaching to it (`codetogo tail`), triaging what's
+`waiting-on-you` / `blocked-on-you`, resolving an id from a *dead* session out of the
+resume snapshots, and the read-only-vs-intrusive line (`connect` attaches to a live PTY;
+`stop` kills every session on the machine).
 
 ## Spawn
 

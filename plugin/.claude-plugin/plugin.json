@@ -1,7 +1,7 @@
 {
   "name": "codetogo",
-  "version": "1.3.0",
-  "description": "CodeToGo companion commands for Claude Code \u2014 spawn titled sessions now (one per task), schedule a pre-seeded session to fire later, copy rich text to the clipboard of the device viewing the session, and hand off / resume / compact (in-place context reset) work across CodeToGo sessions. Front door to the `codetogo` CLI.",
+  "version": "1.4.0",
+  "description": "CodeToGo companion commands and skills for Claude Code \u2014 find and read sessions on this machine via the `codetogo` CLI, spawn titled sessions now (one per task), schedule a pre-seeded session to fire later, copy rich text to the clipboard of the device viewing the session, and hand off / resume / compact (in-place context reset) work across CodeToGo sessions.",
   "author": {
     "name": "Eric Mason"
   }
