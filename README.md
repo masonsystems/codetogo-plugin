@@ -49,6 +49,11 @@ stop agents burning turns on questions the CLI answers in one call:
 codetogo sessions --json     # every live session: state, title, cwd, and BOTH ids
 ```
 
+If it doesn't seem to load on its own, invoke it once by hand (`Skill: codetogo:cli`) —
+Claude Code budgets the always-on skill listing and ranks it by recent use, so on a machine
+with a lot of skills installed a brand-new one can start out ranked too low to be offered.
+One use is enough to promote it.
+
 The load-bearing thing it teaches is that each session has **two** unrelated uuids — the
 PTY/CodeToGo `id` and the `agentSessionId` naming the Claude/Codex transcript on disk —
 that are not interchangeable, and that neither command falls back to the other. With the
