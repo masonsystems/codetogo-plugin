@@ -1,6 +1,6 @@
 ---
 name: cli
-description: Work with CodeToGo sessions from the `codetogo` CLI — list what's running on this machine, find which session did a piece of work, read what a session said without attaching to it, and act on the session you're running inside (rename, snooze, notify, copy). Use whenever a task involves a "session" on this machine, a session/PTY/agent id, "which agent wrote this", "what is that session doing", "is anything waiting on me", or a `codetogo` command. Reach for it BEFORE grepping ~/.claude/projects transcripts by hand — one `codetogo sessions --json` answers most of those questions.
+description: "BLOCKING: read this BEFORE running any `codetogo` command or writing any jq over its output — the field names are NOT guessable and a wrong guess returns empty, which reads as \"no such session\" and is a false negative. Triggers: any mention of a CodeToGo/PTY/agent session on this machine, a session or conversation or transcript id, \"which session/agent did this\", \"what is that session doing\", \"is anything waiting on me\", listing/finding/reading sessions, or grepping ~/.claude/projects by hand. Covers: mapping a conversation id to its session (and back), reading a session without attaching, triaging what needs the user."
 ---
 
 # CodeToGo CLI
@@ -38,6 +38,13 @@ codetogo sessions --json
 
 Prefer `--json` over the human listing in every automated read: the plain output is
 `[codetogo] `-prefixed and reflowed, so parsing it is strictly worse.
+
+**Those are all the field names there are.** Do not guess one. `jq` on a field that does
+not exist prints nothing and exits 0, which looks exactly like "no session matches" — so a
+guessed key does not fail loudly, it fabricates a false negative. The plausible-sounding
+names that do **not** exist: `conversationId`, `claudeSessionId`, `sessionId`, `agentId`,
+`name` (it's `displayName`), `title`, `dir`, `status` (it's `state`). If a lookup comes back
+empty, re-read the field list above before concluding the session isn't there.
 
 ## The two ids — read this before anything else
 
@@ -151,15 +158,20 @@ id**, and these commands target that session implicitly — no id argument:
 ```bash
 codetogo rename "Fix flaky auth test"    # retitle this session in the user's list
 codetogo snooze [until-wake|1h|4h|8h|clear]  # stop surfacing this session as waiting
-codetogo notify "deploy finished"        # push to the user's devices (account-wide, not per-session)
 codetogo copy --md notes.md              # rich text → the clipboard of the device viewing this session
+codetogo copy --md notes.md --session <pty-id>   # ...or aim it at another session
 ```
 
 `snooze` is for when you've armed a wait CodeToGo can't see — a cron, a CI run, a promised
 follow-up — so the session doesn't sit in the user's list looking like it needs them.
 
 Outside a CodeToGo session `CODETOGO_SESSION` is unset and these exit 1 with "Not in a
-CodeToGo session" — that's the honest answer, not a bug to work around.
+CodeToGo session" — that's the honest answer, not a bug to work around. `copy` is the one
+exception: `--session <pty-id>` overrides the env var, so it works from anywhere.
+
+**`codetogo notify "deploy finished"` is NOT one of these.** It pushes to the user's
+devices account-wide, reads no session id at all, and works fine outside a session — so
+don't reach for `CODETOGO_SESSION` before calling it.
 
 Related, and covered by their own commands rather than raw CLI: **`/codetogo:spawn`**
 (start new titled sessions, one per task), **`/codetogo:schedule`** (fire a pre-seeded
