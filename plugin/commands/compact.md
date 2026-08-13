@@ -66,6 +66,8 @@ for a worktree session — COD-811). The resumed session deletes the baton after
 codetogo compact "<absolute-handoff-path>"
 ```
 
+When the Bash sandbox is on, run this with `dangerouslyDisableSandbox: true` — the CLI talks to the local server on `127.0.0.1:3847`, which a sandboxed command can never reach. Nothing is armed until the line below prints, so don't end the turn on a failure here.
+
 Expect `Session compact armed.` Then **end your turn immediately** — one line to the user
 ("Handoff written, compact armed — resetting now."), no work summary, no follow-ups. The
 swap fires on the next Stop hook, so an in-flight turn is never killed. If it instead prints

@@ -77,6 +77,7 @@ Otherwise the user is describing **what** to do and **when**. Do this:
 
 ### Notes
 
+- **When the Bash sandbox is on, run every `codetogo` call here with `dangerouslyDisableSandbox: true`.** The CLI talks to the local server on `127.0.0.1:3847`, which a sandboxed command can never reach. `--dry-run` is the trap: it never contacts the server, so it passes sandboxed and only the real `add` fails.
 - If `--dry-run` reports the dir isn't a trusted Claude project, tell the user to
   open Claude there once and accept the trust dialog — a scheduled run in an
   untrusted dir hangs at the trust prompt and never delivers the prompt.
