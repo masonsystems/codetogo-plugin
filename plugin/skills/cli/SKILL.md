@@ -214,3 +214,4 @@ pre-compact agent id can still be resolved to a project.
 - **All timestamps are UTC.** Convert to the user's local zone before showing them.
 - **`--json` needs CLI ≥ 1.2.32** (`codetogo -V`). On an older CLI the flag is rejected;
   `codetogo upgrade` is the fix.
+- **When the Bash sandbox is on, run every `codetogo` command with `dangerouslyDisableSandbox: true`.** The CLI talks to the local server on `127.0.0.1:3847`, which a sandboxed command can never reach. Sandboxed, they all fail the same way, which looks like a dead server and is not `server-not-running`.

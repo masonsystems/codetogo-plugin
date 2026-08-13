@@ -101,6 +101,7 @@ phone or in a browser, then run it again.
 
 ### Notes
 
+- **When the Bash sandbox is on, run the push with `dangerouslyDisableSandbox: true`.** The CLI talks to the local server on `127.0.0.1:3847`, which a sandboxed command can never reach.
 - Must run **inside** a CodeToGo session — the CLI reads `CODETOGO_SESSION`. Outside one it
   exits with "Not in a CodeToGo session"; pass `--session <id>` to target a specific one.
 - If the CLI errors with **`unknown option '--md'`**, the installed CodeToGo predates the

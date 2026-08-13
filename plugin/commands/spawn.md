@@ -62,6 +62,7 @@ first; otherwise spawn without asking — starting quickly is the point.
 
 ### Notes
 
+- **When the Bash sandbox is on, run the spawn with `dangerouslyDisableSandbox: true`.** The CLI talks to the local server on `127.0.0.1:3847`, which a sandboxed command can never reach.
 - The server auto-starts if it isn't running; the user must have logged in once
   (`codetogo login`).
 - Each directory should be a trusted Claude project (open Claude there once and accept
