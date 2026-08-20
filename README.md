@@ -7,6 +7,11 @@ door to the `codetogo` CLI:
   agent to work the `codetogo` CLI: list what's running on this machine, map a transcript
   id back to the session that wrote it, read what a session said without attaching, and
   see what's waiting on you.
+- **`codetogo:docs` skill** (no slash command — loads itself when relevant) — answers
+  "how do I … with CodeToGo" questions from the live documentation at
+  [codetogo.app/docs](https://codetogo.app/docs): it fetches the page, searches it, and
+  quotes the matching section with a link, falling back to `codetogo --help` for anything
+  the page doesn't cover yet.
 - **`/codetogo:spawn`** — start fresh, titled sessions *now*, one per task, in any project
   directory — driveable from your phone the moment they start.
 - **`/codetogo:schedule`** — schedule a fresh, pre-seeded Claude Code session to fire later
@@ -63,6 +68,17 @@ session's last messages without attaching to it (`codetogo tail`), triaging what
 `waiting-on-you` / `blocked-on-you`, resolving an id from a *dead* session out of the
 resume snapshots, and the read-only-vs-intrusive line (`connect` attaches to a live PTY;
 `stop` kills every session on the machine).
+
+## Asking how to use CodeToGo (`codetogo:docs` skill)
+
+A skill, not a command — it loads when you ask a usage question ("how do I pair my phone
+for end-to-end encryption?", "why am I not getting push notifications?", "what does
+`codetogo spawn` do?"). It answers from the published docs rather than the model's memory:
+a bundled helper fetches https://codetogo.app/docs, greps it, and the agent quotes the
+matching section and links it (`https://codetogo.app/docs#<section>`). Anything the page
+doesn't cover falls back to `codetogo --help` and the plugin's other skills, and the agent
+says plainly when something isn't documented instead of guessing. Same ranking caveat as
+`codetogo:cli`: invoke it once by hand (`Skill: codetogo:docs`) if it doesn't load on its own.
 
 ## Spawn
 
