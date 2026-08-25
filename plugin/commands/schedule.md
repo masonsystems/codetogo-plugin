@@ -59,21 +59,26 @@ Otherwise the user is describing **what** to do and **when**. Do this:
    PROMPT
    ```
 
-5. **Preview with `--dry-run`** (validates the cwd is a trusted Claude dir, parses
-   the trigger, prints the computed next-fire time — saves nothing):
+5. **Validate with `--dry-run`** (checks the cwd is a trusted Claude dir, parses the
+   trigger, prints the computed next-fire time — saves nothing):
    ```bash
    codetogo schedule add --dry-run \
      --name <name> --cwd "<dir>" --at "<cron|ISO>" \
      --prompt-file /tmp/ctg-schedule-prompt.txt
    ```
 
-6. **Show the user the parse** (name, next run, cwd, prompt) and **ask them to
-   confirm**. If they confirm, run the real command (same flags, no `--dry-run`):
+6. **Save it — do not ask the user to confirm.** If the dry run parsed cleanly, run
+   the real command immediately (same flags, no `--dry-run`):
    ```bash
    codetogo schedule add \
      --name <name> --cwd "<dir>" --at "<cron|ISO>" \
      --prompt-file /tmp/ctg-schedule-prompt.txt
    ```
+   Then report what was scheduled: name, next run in the user's local zone, cwd, and
+   a one-line summary of the prompt. A schedule is trivially reversible with
+   `codetogo schedule remove <name>`, so a confirmation round trip buys nothing.
+   Only stop and ask if the dry run fails, or the request is genuinely ambiguous
+   about *what* to run — never merely to confirm a time you already parsed.
 
 ### Notes
 
@@ -82,5 +87,9 @@ Otherwise the user is describing **what** to do and **when**. Do this:
   open Claude there once and accept the trust dialog — a scheduled run in an
   untrusted dir hangs at the trust prompt and never delivers the prompt.
 - The server must be running (`codetogo start`) for the schedule to fire.
+- Pass `--prompt-file` an **absolute path that `codetogo` itself can read**. If a
+  sandbox redirected your `$TMPDIR`, the path you wrote to is not the path an
+  unsandboxed `codetogo` resolves, and the add fails with `ENOENT`. Write the file,
+  then pass the real absolute path you can `ls`.
 - Add `--tz <IANA>` (e.g. `America/Chicago`) only if the user wants a zone other
   than this machine's.
