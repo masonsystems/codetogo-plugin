@@ -108,6 +108,21 @@ codetogo tail <pty-id> -n 10 --max-lines 0   # more turns, untruncated
 Prints the title, cwd, and `claude|codex <agentSessionId>` header, so it doubles as a
 PTY-id → agent-id lookup for one session. Works for Claude and Codex sessions alike.
 
+**What ran in this session BEFORE the current conversation?** — a `/clear` starts a new
+conversation and a new transcript with no back-reference to the one it replaced, so the
+shared PTY is the only link and CodeToGo is the only thing holding it:
+
+```bash
+codetogo history                          # this session ($CODETOGO_SESSION), 5 most recent
+codetogo history <pty-id-prefix> --json   # another session, machine-readable
+codetogo tail <pty-id> --agent <agent-session-id>   # read one of them
+```
+
+Each row carries the agent, when it was last active, its opening ask, its last message, and
+the transcript path. `--all` includes the conversation running right now, which is excluded
+by default. Prefer **`/codetogo:continue`** over driving this by hand — it picks the
+conversation and reads both ends for you.
+
 **Transcript path from an agent id** (for reading raw JSONL yourself). Claude Code
 replaces every char outside `[a-zA-Z0-9-]` in the cwd with `-`:
 
@@ -176,7 +191,8 @@ don't reach for `CODETOGO_SESSION` before calling it.
 Related, and covered by their own commands rather than raw CLI: **`/codetogo:spawn`**
 (start new titled sessions, one per task), **`/codetogo:schedule`** (fire a pre-seeded
 session later), **`/codetogo:copy`**, **`/codetogo:handoff`** · **`/codetogo:resume`** ·
-**`/codetogo:compact`**. Prefer those over hand-rolling `codetogo spawn` / `schedule add`.
+**`/codetogo:compact`** · **`/codetogo:fresh`** · **`/codetogo:continue`**. Prefer those over
+hand-rolling `codetogo spawn` / `schedule add` / `history`.
 
 ## Older / dead sessions
 
