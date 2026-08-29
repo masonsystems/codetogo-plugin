@@ -21,6 +21,10 @@ door to the `codetogo` CLI:
 - **`/codetogo:compact`** — reset a *live* CodeToGo session's context in place: like
   `/compact`, but a real process reset — hot-swap the `claude` process, reseeded from a fresh
   handoff, without a reconnect.
+- **`/codetogo:fresh`** · **`/codetogo:continue`** — the no-handoff version of the same swap,
+  for a session that's merely too big to keep paying for: `fresh` replaces the agent and tells
+  the replacement which conversation it took over from; `continue` finds that conversation
+  after a `/clear` and picks it up from its two ends.
 - **`/codetogo:copy`** — put formatted content on the clipboard of the phone or browser
   viewing the session, so a paste into Gmail/Docs/Slack keeps bold, bullets, tables, and
   monospace.
@@ -118,7 +122,9 @@ the *same* live session:
 ```
 /codetogo:handoff            # write .claude/tmp/HANDOFF.md (add `quick` for the essentials)
 /codetogo:resume [path]      # pick up from a handoff (default: .claude/tmp/HANDOFF.md)
-/codetogo:compact [path]       # reset THIS live CodeToGo session in place, reseeded from a handoff
+/codetogo:compact [path]     # reset THIS live CodeToGo session in place, reseeded from a handoff
+/codetogo:fresh              # same swap, no handoff — the replacement reads this transcript
+/codetogo:continue [id]      # after a /clear: find and pick up the conversation that ran here
 ```
 
 `handoff` and `resume` are tool-agnostic — the handoff is a plain `HANDOFF.md` any AI coding
@@ -132,6 +138,22 @@ process swap**. At the next idle boundary the old `claude` is killed and
 viewers, phone entry, terminal pane, and scrollback. It's `/compact`, but the reset is a real
 new process (a true near-zero context reset) and the client sees no reconnect, only new
 output. Reach for it when the context is *polluted*, not merely long.
+
+`fresh` is the same swap with the handoff step deleted, for when the context is merely
+*expensive*: a session so large its cache has expired, where the work is fine and the only
+problem is the price of the next turn. The dying agent writes nothing — it arms the swap and
+stops — and the replacement is handed the id of the conversation it took over from, which it
+reads at fresh-context prices. A handoff is better context than a transcript, but writing one
+costs a turn in the most expensive session you have; `fresh` is the trade for when that turn
+is the thing you're avoiding.
+
+`continue` is the same pickup, for when you've *already* cleared. Claude Code starts a brand-new
+conversation and a brand-new transcript on `/clear`, with nothing in either file pointing back
+at the one it replaced — the shared CodeToGo session is the only surviving link, so the agent
+can't find the work on its own. `/codetogo:continue` asks CodeToGo which conversations have run
+here, then reads the chosen one's opening ask and last turns. Run it bare and it picks; pass an
+id and it takes that one. It never reloads the whole conversation — that's `claude --resume`,
+and it's the cost you were escaping.
 
 ## Copy
 
