@@ -32,9 +32,21 @@ If it prints `Not inside a CodeToGo session`, this command has nothing to work w
 
 ```bash
 codetogo tail "$CODETOGO_SESSION" --agent <agent-session-id> -n 8 --max-lines 40
+# Monitors and background tasks that conversation started and never saw finish.
+INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"
+[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | tail -1)
+[ -n "$INV" ] && [ -f "$INV" ] && bash "$INV" <agent-session-id>
 ```
 
 Also `dangerouslyDisableSandbox: true`.
+
+The inventory is the one thing the transcript won't tell you at a glance: what that
+conversation left *running*. How much survived depends on how you got here — a
+`/codetogo:fresh` swap killed the whole process tree, so every task listed is dead, while a
+plain `/clear` left the processes alive but pointed their notifications at a conversation
+that no longer exists, so you will never hear from them either. Treat both the same way:
+re-arm what the work still needs, and say in your summary what you re-armed. Anything
+watching a build, a deploy, or a CI run has been unwatched since the boundary.
 
 That is normally enough to resume. Only if it isn't — the last turns are mid-thought, or they reference a decision you can't reconstruct — read further back from `transcriptPath` with a bounded read (`tail -c 400000 <path>`). Never read the whole file: these transcripts run to hundreds of megabytes, and re-inflating the context is the exact cost this command exists to avoid.
 

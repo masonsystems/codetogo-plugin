@@ -15,6 +15,8 @@ Sibling of `/codetogo:compact`, and the difference is what the dying agent has t
 
 A handoff is better context than a transcript. It is also one more turn in the most expensive session you have, which is why this command exists: when that turn is the thing you're trying to avoid, skip it and let the replacement read the transcript at fresh-context prices.
 
+The swap kills the whole process tree, so any `Monitor` or background `Bash` task this session started dies with it. You do **not** inventory them here — that would cost the turn this command exists to skip. `/codetogo:continue` reads them out of this transcript on the other side and re-arms what still matters.
+
 ## HARD RULE — this command is a stop order
 
 From the moment it is invoked, your only remaining job is to arm the swap and end the turn. That is exactly **one tool call** — the Bash call below — and nothing else.
