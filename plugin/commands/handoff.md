@@ -14,6 +14,10 @@ live session) — reach for that when the context is polluted, not merely long.
 git status && git diff --stat && git log --oneline -5
 echo "cc/$CLAUDE_CODE_SESSION_ID"      # source transcript id (for aii) — omit if empty
 echo "$CODETOGO_SESSION"               # the CodeToGo session id, if this is one
+# Monitors and background Bash tasks this session started and never saw finish.
+INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"
+[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | sort -V | tail -1)
+[ -n "$INV" ] && [ -f "$INV" ] && bash "$INV"
 ```
 
 Then mine the conversation for: the goal, what's done, **what was tried and abandoned and
@@ -57,6 +61,12 @@ Failed Approaches**:
 - **Working**: <what functions right now>
 - **Broken**: <what doesn't, with error text>
 - **Uncommitted**: <summary of staged/unstaged changes>
+
+## Background Tasks (omit only if the inventory found none)
+<paste the inventory block from step 1, verbatim including commands, and turn each
+`restart: **decide**` into `restart: **yes**` (say what it watches and what to do when it
+fires) or `restart: **no**` (say why it's finished with). Nothing here survives into the
+new process — a swap kills them, and even a plain /compact stops delivering their events.>
 
 ## Files to Know
 | File | Why it matters |

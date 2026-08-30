@@ -139,6 +139,15 @@ viewers, phone entry, terminal pane, and scrollback. It's `/compact`, but the re
 new process (a true near-zero context reset) and the client sees no reconnect, only new
 output. Reach for it when the context is *polluted*, not merely long.
 
+Both `handoff` and `compact` take a **background inventory** first: every `Monitor` and
+background `Bash` task the session started and never saw finish, read out of the transcript
+with its command intact. The swap kills the outgoing `claude` with `killProcessTree`, so a
+monitor watching a deploy or a poll loop waiting on CI dies with it, and the fresh process
+has no way to learn it existed. The inventory goes into the handoff under
+`## Background Tasks` with a keep-or-drop call per task, and `resume` re-arms the keepers
+before it touches the work. Claude Code's own `/compact` leaves those processes running but
+stops delivering their notifications, which looks identical to nothing having happened.
+
 `fresh` is the same swap with the handoff step deleted, for when the context is merely
 *expensive*: a session so large its cache has expired, where the work is fine and the only
 problem is the price of the next turn. The dying agent writes nothing — it arms the swap and

@@ -29,16 +29,23 @@ tidy up, don't investigate. Anything you were doing — or wanted to do — beco
 Done** item in the handoff for the next agent; the fresh process does it, not you. Every
 extra tool call here adds a turn and spends the very tokens this command exists to save.
 
-## 1. Precondition + handoff path — ONE Bash call
+## 1. Precondition + handoff path + background inventory — ONE Bash call
 
 ```bash
-if [ -z "$CODETOGO_SESSION" ]; then echo "NOT a codetogo-owned session"; else ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "owned: $CODETOGO_SESSION"; echo "transcript: cc/$CLAUDE_CODE_SESSION_ID"; echo "handoff: $ROOT/.claude/tmp/HANDOFF.md"; fi
+if [ -z "$CODETOGO_SESSION" ]; then echo "NOT a codetogo-owned session"; else ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "owned: $CODETOGO_SESSION"; echo "transcript: cc/$CLAUDE_CODE_SESSION_ID"; echo "handoff: $ROOT/.claude/tmp/HANDOFF.md"; echo; INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"; [ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | sort -V | tail -1); if [ -n "$INV" ] && [ -f "$INV" ]; then bash "$INV" | tee "$ROOT/.claude/tmp/background-inventory.md"; echo; echo "inventory: $ROOT/.claude/tmp/background-inventory.md"; else echo "_Background inventory script not found — list any monitors/background tasks you remember starting._"; fi; fi
 ```
 
 This only works when CodeToGo spawned the PTY — a `codetogo claude` session, the web "new
 session" button, or a scheduled session. A bare `claude` that CodeToGo only sees via hooks
 is **not** swappable. If it prints `NOT a codetogo-owned session`, stop and tell the user
 this command only works inside a CodeToGo-managed session — there's nothing to reset.
+
+The same call prints the **background inventory**: every `Monitor` and background `Bash`
+task this session started that never reported finishing. The swap kills the outgoing
+`claude` with `killProcessTree`, so every one of them dies mid-flight — a monitor watching
+a deploy, a poll loop waiting on CI, a long build. None of it survives, and the fresh
+process has no way to discover any of it existed. That output is the only record; carry it
+into the handoff in step 2.
 
 ## 2. Write the handoff — from context only
 
@@ -52,8 +59,32 @@ id from step 1 so the next agent can consult the source conversation.
 Everything unfinished — including whatever this command interrupted — goes under **Not Yet
 Done** / **Resume Instructions** as standing orders for the next agent.
 
+**Carry the background inventory across.** If step 1 listed live tasks, copy that
+`## Background Tasks` block into the handoff verbatim — commands included, since the fresh
+process re-arms from them — and replace each `restart: **decide**` with your actual call:
+
+- `restart: **yes**` — the work depends on it. Say what it's watching and what to do when it
+  fires, so re-arming isn't guesswork.
+- `restart: **no**` — it was scaffolding, already answered its question, or watches something
+  that's finished. Give the one-line reason; "no" without a reason reads as an oversight and
+  the next agent re-arms it anyway.
+
+You cannot check whether a task is still doing anything useful — that would cost tool calls
+this command exists to save. Judge from what you already know it was for. When genuinely
+unsure, mark it **yes**: a redundant monitor costs one tool call to stop, a dropped one
+costs a silent failure nobody is watching for.
+
 If `$ARGUMENTS` is a path, the user already wrote/reviewed the handoff — skip this step and
-use that path instead.
+use that path instead. Their handoff predates the inventory, so if step 1 listed live tasks,
+append the file step 1 saved, from step 3's Bash call, before the `codetogo compact` line:
+
+```bash
+cat "<root>/.claude/tmp/background-inventory.md" >> "<their-handoff-path>"
+```
+
+Append the **file**, never a heredoc carrying the block inline. A recorded task command can
+itself contain `<<'EOF'`, which closes your outer heredoc early and feeds the rest of the
+inventory to the shell as commands. `cat` of a file on disk has no delimiter to collide with.
 
 ## 3. Arm the compact, then end the turn
 
