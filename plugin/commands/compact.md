@@ -32,7 +32,7 @@ extra tool call here adds a turn and spends the very tokens this command exists 
 ## 1. Precondition + handoff path + background inventory — ONE Bash call
 
 ```bash
-if [ -z "$CODETOGO_SESSION" ]; then echo "NOT a codetogo-owned session"; else ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "owned: $CODETOGO_SESSION"; echo "transcript: cc/$CLAUDE_CODE_SESSION_ID"; echo "handoff: $ROOT/.claude/tmp/HANDOFF.md"; echo; INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"; [ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | tail -1); if [ -n "$INV" ] && [ -f "$INV" ]; then bash "$INV"; else echo "_Background inventory script not found — list any monitors/background tasks you remember starting._"; fi; fi
+if [ -z "$CODETOGO_SESSION" ]; then echo "NOT a codetogo-owned session"; else ROOT="${CLAUDE_PROJECT_DIR:-}"; [ -z "$ROOT" ] && ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; if [ -z "$ROOT" ]; then d="$PWD"; while [ "$d" != "/" ] && [ ! -d "$d/.claude" ]; do d=$(dirname "$d"); done; ROOT="$d"; fi; [ "$ROOT" = "/" ] && ROOT="$PWD"; mkdir -p "$ROOT/.claude/tmp"; echo "owned: $CODETOGO_SESSION"; echo "transcript: cc/$CLAUDE_CODE_SESSION_ID"; echo "handoff: $ROOT/.claude/tmp/HANDOFF.md"; echo; INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"; [ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | sort -V | tail -1); if [ -n "$INV" ] && [ -f "$INV" ]; then bash "$INV" | tee "$ROOT/.claude/tmp/background-inventory.md"; echo; echo "inventory: $ROOT/.claude/tmp/background-inventory.md"; else echo "_Background inventory script not found — list any monitors/background tasks you remember starting._"; fi; fi
 ```
 
 This only works when CodeToGo spawned the PTY — a `codetogo claude` session, the web "new
@@ -76,8 +76,15 @@ costs a silent failure nobody is watching for.
 
 If `$ARGUMENTS` is a path, the user already wrote/reviewed the handoff — skip this step and
 use that path instead. Their handoff predates the inventory, so if step 1 listed live tasks,
-append the block to that file from step 3's Bash call (`cat >> "<path>" <<'EOF' … EOF`,
-before the `codetogo compact` line) rather than spending a fourth tool call on it.
+append the file step 1 saved, from step 3's Bash call, before the `codetogo compact` line:
+
+```bash
+cat "<root>/.claude/tmp/background-inventory.md" >> "<their-handoff-path>"
+```
+
+Append the **file**, never a heredoc carrying the block inline. A recorded task command can
+itself contain `<<'EOF'`, which closes your outer heredoc early and feeds the rest of the
+inventory to the shell as commands. `cat` of a file on disk has no delimiter to collide with.
 
 ## 3. Arm the compact, then end the turn
 

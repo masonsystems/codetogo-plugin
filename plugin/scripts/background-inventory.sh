@@ -163,6 +163,16 @@ if (live.length === 0 && !(showAll && done.length)) {
 const trunc = (s, n) => (s.length > n ? `${s.slice(0, n)}\n… [truncated, ${s.length} chars total]` : s);
 const oneLine = (s) => s.replace(/\s+/g, ' ').trim();
 
+// A recorded command can itself contain a Markdown fence — a heredoc that writes
+// a README, say. Open with a fence longer than the longest backtick run inside,
+// or the block ends early and the rest of the command leaks into the handoff as
+// prose the next agent may re-arm wrong.
+const fenceFor = (s) => {
+  let longest = 0;
+  for (const m of s.matchAll(/`+/g)) longest = Math.max(longest, m[0].length);
+  return '`'.repeat(Math.max(3, longest + 1));
+};
+
 const tail = (id) => {
   const f = outFile.get(id);
   if (!f) return null;
@@ -179,28 +189,33 @@ const tail = (id) => {
 const out = [];
 out.push(`## Background Tasks (${live.length} live)`);
 out.push('');
-out.push('These were started in the outgoing session and **were never reported finished**. A');
-out.push('compact swap kills them outright, so nothing below survives into the new session.');
-out.push('Re-arm the ones the work still depends on; drop the rest deliberately.');
+if (live.length) {
+  out.push('These were started in the outgoing session and **were never reported finished**. A');
+  out.push('compact swap kills them outright, so nothing below survives into the new session.');
+  out.push('Re-arm the ones the work still depends on; drop the rest deliberately.');
+} else {
+  out.push('Nothing is still running — nothing to re-arm.');
+}
 out.push('');
 
 const shown = live.slice(0, MAX_LISTED);
 for (const [id, r] of shown) {
   const bits = [r.kind];
   if (r.kind === 'monitor') bits.push(r.persistent ? 'persistent' : `timeout ${Math.round((r.timeoutMs ?? 300000) / 60000)}m`);
-  out.push(`### \`${id}\` — ${r.desc || '(no description)'}`);
+  out.push(`### \`${id}\` — ${oneLine(r.desc) || '(no description)'}`);
   out.push(`*${bits.join(' · ')}* · restart: **decide** (keep / drop)`);
   out.push('');
-  out.push('```bash');
-  out.push(trunc(r.cmd.trim(), MAX_CMD));
-  out.push('```');
+  const cmd = trunc(r.cmd.trim(), MAX_CMD);
+  out.push(`${fenceFor(cmd)}bash`);
+  out.push(cmd);
+  out.push(fenceFor(cmd));
   const t = tail(id);
   if (t) {
     out.push('');
     out.push(`Last output (${outFile.get(id)}):`);
-    out.push('```');
+    out.push(fenceFor(t));
     out.push(t);
-    out.push('```');
+    out.push(fenceFor(t));
   }
   out.push('');
 }

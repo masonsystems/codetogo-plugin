@@ -16,7 +16,7 @@ echo "cc/$CLAUDE_CODE_SESSION_ID"      # source transcript id (for aii) — omit
 echo "$CODETOGO_SESSION"               # the CodeToGo session id, if this is one
 # Monitors and background Bash tasks this session started and never saw finish.
 INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"
-[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | tail -1)
+[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | sort -V | tail -1)
 [ -n "$INV" ] && [ -f "$INV" ] && bash "$INV"
 ```
 

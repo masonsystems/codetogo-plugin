@@ -43,7 +43,27 @@ Exception: an explicit `$ARGUMENTS` path that points **elsewhere** — anything 
 `.claude/tmp/HANDOFF.md` (a doc at the repo root, under `docs/`, a saved plan) — is a persistent
 doc the user pointed at deliberately; the `case` above leaves it untouched.
 
-## 3. Get to work
+## 3. Re-arm the background tasks
+
+Do this before the work and before your summary line — the summary reports a count you have
+to have earned.
+
+If the handoff has a **Background Tasks** section, act on it first: the swap killed every one
+of those processes, and nothing else in the session will remind you they existed. Re-arm each
+`restart: **yes**` entry from the command recorded there, using the same tool it came from —
+a `monitor` entry goes back through `Monitor`, a `bash` entry through Bash with
+`run_in_background: true`.
+
+Re-arm before the work because the work often depends on one of them (a build you're waiting
+on, a deploy you're watching), and a monitor armed after the event it was watching has already
+fired never reports. Skip the `restart: **no**` entries silently. If an entry says **yes** but
+its command no longer makes sense here — it watched a path that's gone, or a PID from the dead
+process — don't re-arm something that can only fail; say so in your summary instead.
+
+No **Background Tasks** section, or nothing marked **yes**? Nothing to do here — drop the
+`Re-armed:` line from the summary below rather than printing a zero.
+
+## 4. Get to work
 
 A compact swap re-execs a fresh process under the *same* PTY and checkout with ~zero elapsed
 time, so there's nothing to reconcile against the repo — go straight to the work. Give a
@@ -54,25 +74,11 @@ continue?" and wait.
 ```
 Resuming from handoff: <title>
 Goal: <1 sentence> · Status: <X of Y done>
-Re-armed: <n> background task(s) · starting with <first item>.
+Re-armed: <n> background task(s), dropped <n> · starting with <first item>.
 ```
 
-## 3a. Re-arm background tasks first, before the work
-
-If the handoff has a **Background Tasks** section, act on it before anything else — the swap
-killed every one of those processes, and nothing else in the session will remind you they
-existed. Re-arm each `restart: **yes**` entry from the command recorded there, using the same
-tool it came from: a `monitor` entry goes back through `Monitor`, a `bash` entry through Bash
-with `run_in_background: true`.
-
-Re-arm first because the work below often depends on one of them (a build you're waiting on, a
-deploy you're watching), and a monitor armed after the event it was watching has already fired
-never reports. Skip the `restart: **no**` entries silently. If an entry says **yes** but its
-command no longer makes sense here — it watched a path that's gone, or a PID from the dead
-process — say so in your summary line rather than re-arming something that can only fail.
-
-Tell the user in one line what you re-armed and what you dropped. They armed those watches for
-a reason and can't see that they died.
+The user armed those watches for a reason and cannot see that they died, so say what you
+re-armed and what you dropped — that line is the only place they learn it.
 
 Pause for the user only when: a blocker needs a
 decision/credentials/access only they can give, the outstanding work is genuinely ambiguous

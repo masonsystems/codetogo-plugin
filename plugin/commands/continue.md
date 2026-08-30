@@ -34,7 +34,7 @@ If it prints `Not inside a CodeToGo session`, this command has nothing to work w
 codetogo tail "$CODETOGO_SESSION" --agent <agent-session-id> -n 8 --max-lines 40
 # Monitors and background tasks that conversation started and never saw finish.
 INV="${CLAUDE_PLUGIN_ROOT:-}/scripts/background-inventory.sh"
-[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | tail -1)
+[ -f "$INV" ] || INV=$(find "$HOME/.claude/plugins" -maxdepth 7 -name background-inventory.sh -path "*codetogo*" 2>/dev/null | sort -V | tail -1)
 [ -n "$INV" ] && [ -f "$INV" ] && bash "$INV" <agent-session-id>
 ```
 
