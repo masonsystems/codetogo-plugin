@@ -8,22 +8,28 @@ description: "Ask the user for an API key, token, password, or any other credent
 When you need a credential to continue, ask for it directly. The user gets a masked field on whatever device they are holding, pastes the value, and you get back a file path.
 
 ```bash
-codetogo secret request ANTHROPIC_API_KEY --reason "Running the deploy script"
+codetogo secret request --reason "Running the deploy script"
 ```
 
 The command blocks until the user answers, then prints the path on its own line:
 
 ```
-Got ANTHROPIC_API_KEY. Read it, use it, then delete the file:
-/Users/eric/.codetogo/uploads/<session>/secrets/<id>-ANTHROPIC_API_KEY
+Got the secret. Read it, use it, then delete the file:
+/Users/eric/.codetogo/uploads/<session>/secrets/<id>-secret
 ```
 
 Read the file, put the value where it belongs, and delete the file:
 
 ```bash
-SECRET_PATH="$(codetogo secret request ANTHROPIC_API_KEY --reason "Deploy needs it" | tail -1)"
+SECRET_PATH="$(codetogo secret request --reason "Deploy needs it" | tail -1)"
 printf 'ANTHROPIC_API_KEY=%s\n' "$(cat "$SECRET_PATH")" >> .env
 rm -f "$SECRET_PATH"
+```
+
+You can add a few words saying what you want, and they are shown to the user:
+
+```bash
+codetogo secret request "the Stripe test key" --reason "Charging a test card"
 ```
 
 ## Rules
@@ -32,7 +38,8 @@ rm -f "$SECRET_PATH"
 - **Use shell substitution, never your own eyes.** `$(cat "$SECRET_PATH")` moves the value without it entering the conversation. Reading the file yourself puts the credential in your context, which is exactly what this avoids.
 - **Delete the file when you are done.** It self-deletes after five minutes, but that is a backstop, not a plan.
 - **Say what it is for.** `--reason` is shown above the field. A request to paste a credential with no stated purpose is one the user should refuse, so give them what they need to say yes.
-- **Name the variable, not a description.** `ANTHROPIC_API_KEY`, not `the API key`. The name is shown to the user and becomes the file name. Letters, digits and underscores only.
+- **Do not name it unless it disambiguates.** The label is optional, and skipping it is the normal case: you are blocked on exactly one credential, `--reason` already says what for, and the user is answering a question you just asked. Add one only when you will ask for several in a row and the user needs to know which is which.
+- **When you do label it, use plain words.** `the Stripe test key`, not `STRIPE_TEST_KEY`. It is a hint about what the thing is, not the name of an environment variable, and it never has to match where the value ends up. The file name is derived from it, so what you write is never what you have to read back.
 
 ## When the user says no
 
