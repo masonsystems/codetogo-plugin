@@ -41,7 +41,7 @@ Every ending is explicit and exits non-zero, so you can branch on it:
 | Ending | What it means | What to do |
 |--------|---------------|------------|
 | `Declined` | The user chose not to provide it | Stop asking. Say what you cannot do without it. |
-| `Timed out` | Nobody answered within the window (default 10 minutes) | Say you are blocked and what you need; do not loop. |
+| `Timed out` | Nobody answered within the window (default 10 minutes, maximum 30) | Say you are blocked and what you need; do not loop. |
 | `The session closed` | The session went away while waiting | Nothing to do. |
 
 Do not retry a decline. The user answered.
@@ -51,7 +51,7 @@ Do not retry a decline. The user answered.
 | Flag | Purpose |
 |------|---------|
 | `--reason <text>` | One line on what the secret is for, shown above the field |
-| `--timeout <seconds>` | How long to wait (default 600) |
+| `--timeout <seconds>` | How long to wait (default 600, capped at 1800) |
 | `--session <id>` | Target another session; defaults to the one you are running in |
 
 ## When not to use this
