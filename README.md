@@ -28,6 +28,9 @@ door to the `codetogo` CLI:
 - **`/codetogo:copy`** — put formatted content on the clipboard of the phone or browser
   viewing the session, so a paste into Gmail/Docs/Slack keeps bold, bullets, tables, and
   monospace.
+- **`codetogo:quit` skill** (also `/codetogo:quit`) — "reply and quit", "ship it and quit":
+  when the task succeeds, the agent ends its own session at the end of the turn, so you never
+  have to go back to it. On any failure it leaves the session open and reports instead.
 
 ## Prerequisites
 
@@ -113,6 +116,18 @@ that dir's files/tools/creds but has **no memory** of the chat that created it, 
 prompt is always written to be self-contained. The directory must be a trusted Claude
 project (open Claude there once and accept the trust dialog), and `codetogo` must be
 running for the schedule to fire.
+
+## Quit when done
+
+Tell an agent to do something *and quit* — "send the reply and quit", "close COD-123 and quit",
+"ship it, then close this session" — and, if the task fully succeeds, it runs `codetogo quit`
+as its last tool call and ends the turn. The session closes after the final reply is written:
+it leaves every list with no red dot and no push, sits in the recently-closed list (Cmd-Shift-T
+brings it back intact for 10 seconds, a reopen `--resume`s it after that), and the transcript
+stays readable with `codetogo history`.
+
+The quit is conditional on success. A failed test, a PR that won't merge, a bounced email, a
+question the agent needs answered — any of these and the session stays open with a normal report.
 
 ## Handoff, resume & compact
 
